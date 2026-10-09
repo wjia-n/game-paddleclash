@@ -44,7 +44,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     widget.audio.startGameMusic();
-    _events = _e.events.listen(_onEvent);
+    _events = _e.events.stream.listen(_onEvent);
   }
 
   void _onEvent(ClashEvent e) {

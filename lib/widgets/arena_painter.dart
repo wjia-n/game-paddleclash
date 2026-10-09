@@ -222,7 +222,7 @@ class ArenaPainter extends CustomPainter {
     final base = _ballBaseColor();
 
     // Contact shadow on the table.
-    canvas.drawEllipse(
+    canvas.drawOval(
       Rect.fromCenter(center: c + Offset(r * 0.25, r * 0.55), width: r * 2.1, height: r * 0.9),
       Paint()..color = Colors.black.withValues(alpha: 0.28),
     );

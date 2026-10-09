@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 /// Match phases. The engine owns every phase transition on its own timers;

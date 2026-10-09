@@ -1,25 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:wajiha_game_core/wajiha_game_core.dart';
-import 'game_screen.dart';
+import 'package:flutter/services.dart';
+import 'screens/splash_screen.dart';
+import 'services/audio_service.dart';
+import 'services/settings_service.dart';
 
-void main() => runApp(const PaddleClashApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  final settings = ClashSettings();
+  await settings.load();
+  final audio = ClashAudio();
+  audio.configure(
+    musicOn: settings.musicOn,
+    sfxOn: settings.sfxOn,
+    volume: settings.volume,
+  );
+  runApp(PaddleClashApp(settings: settings, audio: audio));
+}
 
-class PaddleClashApp extends StatelessWidget {
-  const PaddleClashApp({super.key});
+class PaddleClashApp extends StatefulWidget {
+  final ClashSettings settings;
+  final ClashAudio audio;
+  const PaddleClashApp(
+      {super.key, required this.settings, required this.audio});
+
+  @override
+  State<PaddleClashApp> createState() => _PaddleClashAppState();
+}
+
+class _PaddleClashAppState extends State<PaddleClashApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.audio.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause (not stop) on interruption so music resumes exactly where it
+    // left off; the game screen additionally freezes its engine.
+    if (state == AppLifecycleState.paused) {
+      widget.audio.onAppPaused();
+    } else if (state == AppLifecycleState.resumed) {
+      widget.audio.onAppResumed();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GameShell(
-      variant: ShellVariant.cozyPaper,
-      title: 'Paddle Clash',
-      tagline: 'The original arcade duel, now with spin and power shots!',
-      emoji: '🏓',
-      slug: 'paddleclash',
-      howToPlay:
-          '• Drag your paddle left and right to smack the ball back.\n• Solo: you\'re the bottom paddle, the bot guards the top.\n• 2 players: one drags the TOP half, one drags the BOTTOM half.\n• Where the ball hits your paddle adds SPIN — aim with the edges!\n• Miss and your rival scores. First to 7 takes the match. 🏆',
-      playerOptions: const [1, 2],
-      supportsBots: true,
-      gameBuilder: (ctx, players, cb) => PaddleClashScreen(players: players, callbacks: cb),
+    return ListenableBuilder(
+      listenable: widget.settings,
+      builder: (_, _) => MaterialApp(
+        title: 'Paddle Clash',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          fontFamily: 'Roboto',
+        ),
+        home: SplashScreen(
+            audio: widget.audio, settings: widget.settings),
+      ),
     );
   }
 }

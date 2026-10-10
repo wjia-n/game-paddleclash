@@ -63,7 +63,7 @@ class ClashSettings extends ChangeNotifier {
   int wins = 0;
   int gamesPlayed = 0;
   int bestRally = 0; // longest rally ever (0 = none yet)
-  bool isPro = false;
+  bool isPro = true; // everything unlocked — no Pro version
 
   /// Custom theme colors (ARGB ints). Defaults mirror Classic Oak.
   Map<String, int> customColors = Map.of(_defaultCustomColors);
@@ -147,7 +147,7 @@ class ClashSettings extends ChangeNotifier {
     wins = p.getInt(_kWins) ?? 0;
     gamesPlayed = p.getInt(_kGames) ?? 0;
     bestRally = p.getInt(_kBestRally) ?? 0;
-    isPro = p.getBool(_kIsPro) ?? false;
+    isPro = true; // everything unlocked
     for (final k in _defaultCustomColors.keys) {
       customColors[k] = p.getInt('$_kCustomPrefix$k') ?? _defaultCustomColors[k]!;
     }

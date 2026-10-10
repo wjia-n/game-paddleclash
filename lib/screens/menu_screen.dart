@@ -39,7 +39,6 @@ class _MenuScreenState extends State<MenuScreen> {
     _nameBottom = TextEditingController(text: _s.playerNames[0]);
     _nameTop = TextEditingController(text: _s.playerNames[1]);
     _store.init();
-    _store.proPurchased.addListener(_onPro);
     _store.lastThanks.addListener(_onThanks);
   }
 
@@ -52,18 +51,10 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  void _onPro() {
-    if (_store.proPurchased.value && mounted) {
-      widget.settings.setPro(true);
-      _store.proPurchased.value = false;
-      setState(() {});
-    }
-  }
-
+  
   @override
   void dispose() {
     _store.lastThanks.removeListener(_onThanks);
-    _store.proPurchased.removeListener(_onPro);
     _store.dispose();
     _nameBottom.dispose();
     _nameTop.dispose();
@@ -190,7 +181,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        _s.isPro ? '✦  PRO ACTIVE' : '✦  Get PRO',
+                        '☕  Tip Jar',
                         style: ClashText.label(17, t: t, color: t.woodDeep),
                       ),
                     ),

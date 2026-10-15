@@ -18,6 +18,9 @@ import 'package:audioplayers/audioplayers.dart';
 ///   resumes exactly where it left off instead of restarting or dying.
 /// - Every public method catches player errors; audio can never crash the app.
 class ClashAudio {
+  /// Per-game pitch character (paddleclash): 1.30x. Makes SFX unique.
+  static const double _pitchMul = 1.300;
+
   static const int _rate = 22050;
   final AudioPlayer _sfx = AudioPlayer();
   final AudioPlayer _music = AudioPlayer();
@@ -103,6 +106,8 @@ class ClashAudio {
 
   List<double> _tone(double freq, double secs,
       {double freqEnd = 0, double attack = 0.02, double harmonics = 0.25}) {
+    freq *= _pitchMul;
+    freqEnd *= _pitchMul;
     final n = (_rate * secs).round();
     final out = List<double>.filled(n, 0);
     for (int i = 0; i < n; i++) {
@@ -187,12 +192,40 @@ class ClashAudio {
       _cache.putIfAbsent(key, () => _wav(build()));
 
   Uint8List _menuBytes() => _clip('music_menu', () {
-        // Warm C – Am – F – G hall pad, 16s loop.
+        // E waltz 0 – 2 – 5 – 4, 12s loop. Unique to paddleclash.
         final seq = [
-          [261.63, 329.63, 392.0], // C
-          [220.0, 261.63, 329.63], // Am
-          [174.61, 220.0, 261.63], // F
-          [196.0, 246.94, 293.66], // G
+          [164.81, 207.65, 246.94],
+          [207.65, 246.94, 311.13],
+          [277.18, 329.63, 415.31],
+          [246.94, 311.13, 370.00]
+        ];
+        final out = <double>[];
+        for (final chord in seq) {
+          // Waltz: bass on 1, chords on 2 and 3
+          final bass = _tone(chord[0] / 2, 0.8, harmonics: 0.3);
+          final ch1 = _padChord([chord[1], chord[2]], 0.7);
+          final ch2 = _padChord([chord[1], chord[2]], 0.7);
+          out.addAll(bass);
+          final gap1 = List<double>.filled((_rate * 0.2).round(), 0);
+          out.addAll(gap1);
+          out.addAll(ch1);
+          final gap2 = List<double>.filled((_rate * 0.2).round(), 0);
+          out.addAll(gap2);
+          out.addAll(ch2);
+          final gap3 = List<double>.filled((_rate * 0.2).round(), 0);
+          out.addAll(gap3);
+        }
+        return out;
+      });
+
+
+  Uint8List _gameBytes() => _clip('music_game', () {
+        // E 0 – 2 – 5 – 4 warm pad, 16s loop. Unique to paddleclash.
+        final seq = [
+          [164.81, 207.65, 246.94],
+          [207.65, 246.94, 311.13],
+          [277.18, 329.63, 415.31],
+          [246.94, 311.13, 370.00]
         ];
         final out = <double>[];
         for (final chord in seq) {
@@ -201,39 +234,6 @@ class ClashAudio {
         return out;
       });
 
-  Uint8List _gameBytes() => _clip('music_game', () {
-        // Driving arcade rally groove: soft kick pulse + pentatonic plucks.
-        final n = (_rate * 12).round();
-        final out = List<double>.filled(n, 0);
-        // Kick pulse on every beat (120 bpm).
-        final beatLen = (_rate * 0.5).round();
-        for (int b = 0; b * beatLen < n; b++) {
-          final start = b * beatLen;
-          final kick = _tone(90, 0.16, freqEnd: 45, harmonics: 0.1);
-          for (int i = 0; i < kick.length && start + i < n; i++) {
-            out[start + i] += kick[i] * 0.5;
-          }
-        }
-        // Bass line.
-        final bass = [130.81, 130.81, 146.83, 130.81, 98.0, 98.0, 110.0, 98.0];
-        for (int k = 0; k < bass.length; k++) {
-          final start = (n * k / bass.length).round();
-          final tone = _tone(bass[k], 0.9, harmonics: 0.3);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.22;
-          }
-        }
-        // Bright pluck melody.
-        final plucks = [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 440.0];
-        for (int k = 0; k < plucks.length; k++) {
-          final start = (n * k / plucks.length).round() + beatLen ~/ 2;
-          final tone = _tone(plucks[k], 0.32, harmonics: 0.35);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.3;
-          }
-        }
-        return out;
-      });
 
   // ------------------------------------------------------------------ SFX
   Future<void> _play(Uint8List bytes) async {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:share_plus/share_plus.dart';
@@ -181,7 +182,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '☕  Tip Jar',
+                        defaultTargetPlatform == TargetPlatform.iOS ? '⭐ Gold Star' : '☕  Tip Jar',
                         style: ClashText.label(17, t: t, color: t.woodDeep),
                       ),
                     ),
@@ -300,7 +301,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   '• Where the ball hits your paddle adds SPIN — aim with the edges!',
                   '• Every return gets faster. Long rallies feel amazing. 🔥',
                   '• Miss and your rival scores. First to 7 takes the match. 🏆',
-                  '• Hard AI, pro themes, paddles and balls unlock with PRO.',
+                  defaultTargetPlatform == TargetPlatform.iOS ? '• Hard AI and every theme, paddle and ball is unlocked.' : '• Hard AI, pro themes, paddles and balls unlock with PRO.',
                 ])
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
